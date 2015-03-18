@@ -8,6 +8,7 @@ require 'rubygems'
 require 'gosu'
 require 'Thread'
 require 'byebug'
+require 'pry'
 require './lib/painting'
 require './lib/sound'
  
@@ -27,7 +28,6 @@ class MainCanvas < Window
         self.caption = TITLE
         
         @last_frame = Gosu::milliseconds
-        @x_pos = 0
         @increase = TRUE
         @painter = Painter.new(WIDTH, HEIGHT)
         @gosu_image = Image.new(self, @painter.image, true)
@@ -58,6 +58,10 @@ class MainCanvas < Window
             @painter.current_line.increase_stroke_size()
         when KbDown
             @painter.current_line.decrease_stroke_size()
+        when KbLeft
+            @painter.decrease_frequency()
+        when KbRight
+            @painter.increase_frequency()
         when KbEscape
             close
         end

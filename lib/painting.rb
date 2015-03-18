@@ -7,17 +7,24 @@ require 'rvg/rvg'
 include Magick            
             
 RVG::dpi = 72
-            
+
 class Painter
     attr_accessor :drawing, :current_line, :image
     attr_reader :lines
+
+    module FREQUENCYS
+        bass = 'blue'
+        mid = 'red'
+        treble = 'yellow'
+    end
     
     def initialize(width, height)
        @width = width
        @height = height
        @drawing = FALSE
-       @lines = []
+       @pieces = []
        @background_image = Magick::Image.read("data/2.png").first
+       @current_frequency = 'blue'
        
        @rvg = RVG.new(width, height).viewbox(0,0,width,height) do |canvas|
            canvas.background_image = @background_image
@@ -29,7 +36,7 @@ class Painter
     def on_button_down(id)
         case id
         when Gosu::MsLeft
-            @current_line = PaintedLine.new
+            @current_line = PaintedLine.new(@current_frequency)
             @drawing = TRUE
         end
     end
@@ -38,8 +45,14 @@ class Painter
         case id
         when Gosu::MsLeft
             @drawing = FALSE
-            @lines << @current_line
+            @pieces << Piece.new(@current_frequency, @current_image, @rvg)
         end
+    end
+
+    def decrease_frequency
+    end
+
+    def increase_frequency
     end
     
     def update_image
@@ -47,12 +60,6 @@ class Painter
             if not @current_line.mouse_xy.empty? 
                 @current_line.draw_onto_image(@image)
             end 
-        end
-
-        if not @lines.empty? and not drawing
-            @lines.each do |line|
-                line.change_line_colour('green', @image)
-            end
         end
     end
     
@@ -69,17 +76,50 @@ class Painter
         pt.rectangle(14, 12, -12, -11)
         pt.draw(@image)
     end
+end
 
-    def change_line_colour(line, colour)
-        line.stroke(colour)
-        line.draw(@image)
+class Piece
+    STATES = {'start'=>1, 'middle'=>2, 'nothing'=>3}
+
+    def initialize(frequency, painted_image, canvas_rvg)
+        @state = STATES['nothing']
+        @frequency = frequency
+        @painted_image = painted_image
+    end
+
+    def on_update
+
+    end
+
+    def draw_onto_image(image)
+        @painted_image.rvg.draw(image)
     end
 end
 
-class PaintedLine
+class PaintedImage
+    attr_reader :rvg
+
+    def initialize(colour)
+        @colour = colour
+    end
+
+    def on_activation(amplitude)
+
+    end
+
+    def update_rvg
+
+    end
+
+    def draw_preview(iamge)
+    end
+end
+
+class PaintedLine < PaintedImage
     attr_reader :mouse_xy
 
-    def initialize
+    def initialize(colour)
+        super(colour)
         @stroke_size = 1
         @mouse_xy = []
     end
@@ -97,28 +137,17 @@ class PaintedLine
         @stroke_size *= 0.6
     end
 
-    def change_line_colour(colour, image)
-        rvg = RVG::Draw.new
-        rvg.stroke_width(@stroke_size)
-        rvg.stroke(colour)
-        rvg.fill('none')
-
-        n = []
-        @mouse_xy.each do |point|
-            n << point + 7
-        end
-
-        rvg.polyline(*n )
-        rvg.draw(image)
+    def draw_preview(image)
+        create_rvg
+        @rvg.draw(image)
     end
 
-    def draw_onto_image(image)
-        rvg = RVG::Draw.new
-        rvg.stroke_width(@stroke_size)
-        rvg.stroke('red')
-        rvg.fill('none')
-        rvg.polyline(*@mouse_xy)
-        rvg.draw(image)
+    def create_rvg
+        @rvg = RVG::Draw.new
+        @rvg.stroke_width(@stroke_size)
+        @rvg.stroke(@colour)
+        @rvg.fill('none')
+        @rvg.polyline(*@mouse_xy) 
     end
 end
 

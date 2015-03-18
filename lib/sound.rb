@@ -5,15 +5,17 @@ Dir.chdir "/users/joshuajordan/dev/MusicVisualiser"
 require 'ruby-audio'
 require 'ffmpeg'
 require 'fftw3'
+require 'byebug'
+
 
 include RubyAudio
 
 class FrequencyAnalyses
-    WINDOW_SIZE = 128
-    
-    
-    def intialize(wave_file)
-        @snd_wave = Sound.open('data/4.wav')
+    def initialize(wave_file)
+        # Read the wav file this also gives information on how the source was sampled
+        @snd_wave = Sound.open(wave_file)
+
+        byebug
     end
     
     def sample_at_time(time)
@@ -34,7 +36,8 @@ class FrequencyAnalyses
     end
 end
 
-
+FrequencyAnalyses.new('data/200Hz.wav')
+print 'll'
 
 # We want to do a fast fourier transform on a wav file at a particular time. We sample one window (and maybe the next couple for latency)
 # and then return the frequencies and there amplitudes for that sample
